@@ -64,7 +64,7 @@ def tokenizeText(input):
                 temp_token = temp_token.lower()
             if temp_token == ',':
                 if (i != len(token) - 1) and (token[i+1]).isnumeric(): # is a number
-                    cur_token += temp_tokens
+                    cur_token += temp_token
                 else: #isn't a number
                     tokenized_list.append(cur_token)
                     cur_token = ','
