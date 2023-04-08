@@ -50,9 +50,7 @@ def process_csv(filename):
             else: #Don't think this will ever happen
                 print(political_party)
 
-            if (i == 100):
-                print(tweets_dict)
-                break
+    return tweets_dict
 
 
 def main():
