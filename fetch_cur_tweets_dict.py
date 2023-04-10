@@ -1,4 +1,4 @@
-def get_cur_tweets_dict():
+def get_cur_usernames_dict():
     current_pols_dict = {
         "Republican": [
             "Robert_Aderholt",
