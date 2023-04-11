@@ -15,15 +15,17 @@ def process_tweet(tweet):
 
     return tweet
 
-def find_political_party(tweet):
+def find_political_party(tweet, old_flag):
     first_comma = tweet.find(',')
     political_party = tweet[0:first_comma]
     first_comma += 1
+    if not old_flag:
+        return political_party, tweet[first_comma:]
     rest_of_tweet = tweet[first_comma:]
     second_comma = rest_of_tweet.find(',')
     second_comma += 1
     actual_tweet = rest_of_tweet[second_comma:] # don't care about their twitter handle, get rid of it
-    print(actual_tweet)
+    #print(actual_tweet)
     return political_party, actual_tweet
 
 def process_csv(filename):
@@ -36,9 +38,12 @@ def process_csv(filename):
     with open(filename) as opened_csv:
         read_csv = opened_csv.read()
         csv_list = read_csv.split('\n')
-        
+        old_tweets = True
+        if csv_list[0] == 'Party,Tweet':
+            old_tweets = False
+        csv_list.pop(0)
         for i in range(len(csv_list)):
-            political_party, actual_tweet = find_political_party(csv_list[i])
+            political_party, actual_tweet = find_political_party(csv_list[i], old_tweets)
             if political_party == "Democrat":
                 if ("Democrat" not in tweets_dict):
                     tweets_dict["Democrat"] = []
@@ -54,6 +59,6 @@ def process_csv(filename):
 
 
 def main():
-    process_csv('ExtractedTweets.csv')
+    process_csv('ScrapedCurrentTweets.csv')
 
 main()
