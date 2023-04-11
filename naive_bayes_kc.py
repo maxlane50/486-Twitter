@@ -9,7 +9,7 @@ from process_csv import *
 
 def main():
     filename = 'ExtractedTweets.csv'
-    output_file = open(f"naivebayes.output", 'w')
+    output_file = open("naivebayes.output", 'w')
     # Dictionary containing all tweets from spreadsheet
     # Structure:
     #   Example entry --> {"Democrat": ["tweet 1 example", "tweet 2 example", ...]}
@@ -17,7 +17,7 @@ def main():
     tweets_dict = process_csv(filename)
     num_rep_docs = len(tweets_dict['Republican'])
     num_dem_docs = len(tweets_dict['Democrat'])
-    print(num_dem_docs)
+    print(f"num dem: {num_dem_docs}")
     print(num_rep_docs)
     num_docs = num_rep_docs + num_dem_docs
     rep_array = tweets_dict['Republican']
@@ -27,28 +27,25 @@ def main():
     # 10 iterations, first uses first 10% as test, other 90% to train
     len_of_test = math.floor(0.1*num_docs)
     for x in range(10):
-        test_list_r = rep_array.copy()
-        test_list_d = dem_array.copy()
-        train_list_r = rep_array.copy()
-        train_list_d = dem_array.copy()
         # If we are at the last iteration, read to the end of the array
         if x == 9:
-            test_list_r = test_list_r[(len_of_test*x):]
-            test_list_d = test_list_d[(len_of_test*x):]               
+            test_list_r = rep_array[(len_of_test*x):]
+            test_list_d = dem_array[(len_of_test*x):]               
         else:
-            test_list_r = test_list_r[(len_of_test*x):(len_of_test*(x+1))]
-            test_list_d = test_list_d[(len_of_test*x):(len_of_test*(x+1))]
+            test_list_r = rep_array[(len_of_test*x):(len_of_test*(x+1))]
+            print(len(test_list_r))
+            test_list_d = dem_array[(len_of_test*x):(len_of_test*(x+1))]
         train_list_r = [y for y in rep_array if y not in test_list_r]
         train_list_d = [y for y in dem_array if y not in test_list_d]
         prob_rep, prob_dem, rep_probs, dem_probs = trainNaiveBayes(train_list_r, train_list_d)
-        
+        print('done')
         if x == 0:
-            sorted_true_probs = sorted(rep_probs.items(), key=lambda x:x[1], reverse=True)
-            sorted_fake_probs = sorted(dem_probs.items(), key=lambda x:x[1], reverse=True)
+            sorted_rep_probs = sorted(rep_probs.items(), key=lambda x:x[1], reverse=True)
+            sorted_dem_probs = sorted(dem_probs.items(), key=lambda x:x[1], reverse=True)
             for y in range(10):
-                print(f"true: {sorted_true_probs[y]}")
+                print(f"rep: {sorted_rep_probs[y]}")
             for z in range(10):
-                print(f"false: {sorted_fake_probs[z]}")
+                print(f"dem: {sorted_dem_probs[z]}")
         for tweet in test_list_r:                
             output_file.write("rep\t")
             ans = testNaiveBayes(tweet, prob_rep, prob_dem, rep_probs, dem_probs)
@@ -137,22 +134,22 @@ def trainNaiveBayes(rep_array, dem_array):
     return prob_rep, prob_dem, rep_probs, dem_probs
 
 def testNaiveBayes(tweet, prob_rep, prob_dem, rep_probs, dem_probs):
-    true = math.log(prob_rep)
-    fake = math.log(prob_dem)    
+    rep = math.log(prob_rep)
+    dem = math.log(prob_dem)    
     token_list = removeStopwords(tokenizeText(tweet))
     for word in token_list:
         if word in rep_probs:
             # Switched to addition here
-            true += rep_probs[word]
+            rep += rep_probs[word]
             # print(true)
         if word in dem_probs:
             # Switched to addition here
-            fake += dem_probs[word]
+            dem += dem_probs[word]
 
-    if true > fake:
-        return "true"
-    elif fake > true:
-        return "fake"
+    if rep > dem:
+        return "rep"
+    elif dem > rep:
+        return "dem"
     else:
         return "equal"
  
