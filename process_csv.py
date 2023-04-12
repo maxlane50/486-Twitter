@@ -25,7 +25,6 @@ def find_political_party(tweet, old_flag):
     second_comma = rest_of_tweet.find(',')
     second_comma += 1
     actual_tweet = rest_of_tweet[second_comma:] # don't care about their twitter handle, get rid of it
-    #print(actual_tweet)
     return political_party, actual_tweet
 
 def process_csv(filename):
@@ -59,6 +58,6 @@ def process_csv(filename):
 
 
 def main():
-    process_csv('ScrapedCurrentTweets.csv')
+    process_csv('ExtractedTweets.csv')
 
 main()
