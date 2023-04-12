@@ -20,24 +20,34 @@ def main():
     print(f"num dem: {num_dem_docs}")
     print(num_rep_docs)
     num_docs = num_rep_docs + num_dem_docs
+    num_correct = 0
     rep_array = tweets_dict['Republican']
     dem_array = tweets_dict["Democrat"]
 
     # Leave One Out Evaluation Strategy
     # 10 iterations, first uses first 10% as test, other 90% to train
-    len_of_test = math.floor(0.1*num_docs)
+    len_of_rep = math.floor(0.1*num_rep_docs)
+    len_of_dem = math.floor(0.1*num_dem_docs)
     for x in range(10):
+        # test_list_r = rep_array.copy()
+        # test_list_d = dem_array.copy()
+        # train_list_r = rep_array.copy()
+        # train_list_d = dem_array.copy()
         # If we are at the last iteration, read to the end of the array
+        print(len(rep_array))
         if x == 9:
-            test_list_r = rep_array[(len_of_test*x):]
-            test_list_d = dem_array[(len_of_test*x):]               
+            test_list_r = rep_array[(len_of_rep*x):].copy()
+            test_list_d = dem_array[(len_of_dem*x):].copy()           
         else:
-            test_list_r = rep_array[(len_of_test*x):(len_of_test*(x+1))]
+            test_list_r = rep_array[(len_of_rep*x):(len_of_rep*(x+1))].copy()
+            print(len(rep_array))
             print(len(test_list_r))
-            test_list_d = dem_array[(len_of_test*x):(len_of_test*(x+1))]
+            test_list_d = dem_array[(len_of_dem*x):(len_of_dem*(x+1))].copy()
         train_list_r = [y for y in rep_array if y not in test_list_r]
+        print(len(rep_array))
         train_list_d = [y for y in dem_array if y not in test_list_d]
         prob_rep, prob_dem, rep_probs, dem_probs = trainNaiveBayes(train_list_r, train_list_d)
+        print(len(rep_array))
         print('done')
         if x == 0:
             sorted_rep_probs = sorted(rep_probs.items(), key=lambda x:x[1], reverse=True)
@@ -49,12 +59,17 @@ def main():
         for tweet in test_list_r:                
             output_file.write("rep\t")
             ans = testNaiveBayes(tweet, prob_rep, prob_dem, rep_probs, dem_probs)
+            if ans == 'rep':
+                num_correct += 1
             output_file.write(f"{ans}\n")
         for tweet in test_list_d:                
             output_file.write("dem\t")
             ans = testNaiveBayes(tweet, prob_rep, prob_dem, rep_probs, dem_probs)
+            if ans == 'dem':
+                num_correct += 1
             output_file.write(f"{ans}\n")  
-        print(x)        
+        print(x)
+    output_file.write(f"accuracy: {num_correct/num_docs}")    
 
 def trainNaiveBayes(rep_array, dem_array):
     vocab = []
