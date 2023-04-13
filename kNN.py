@@ -194,14 +194,14 @@ def extract_dictionary_custom(df,n_gram = 1):
     return word_dict, num_of_tweets
 
 #generate a feature matrix
-def trainkNN(df):
-    word_dict, num_of_tweets = extract_dictionary_custom(df,2)
+def trainkNN(df,ngrams):
+    word_dict, num_of_tweets = extract_dictionary_custom(df,ngrams)
     labels = {}
     num_of_words = len(word_dict)
     feature_matrix = np.zeros((num_of_tweets,num_of_words))
     ind = 0
     for index, row in df.iterrows():
-        x = extract_word_custom(row["Tweet"],2)
+        x = extract_word_custom(row["Tweet"],ngrams)
         y = row["Party"]
         if len(x) != 0:
             for word in x:
@@ -211,12 +211,12 @@ def trainkNN(df):
             ind +=1
     return feature_matrix, labels, word_dict
 
-def trainTestData(df,word_dict):
+def trainTestData(df,word_dict,ngrams):
     labels = {}
     feature_matrix = np.zeros((len(df),len(word_dict)))
     ind = 0
     for index, row in df.iterrows():
-        x = extract_word_custom(row["Tweet"],2)
+        x = extract_word_custom(row["Tweet"],ngrams)
         y = row["Party"]
         for word in x:
             if word in word_dict:
@@ -248,27 +248,66 @@ def testkNN(feature_matrix, test_feature_matrix, trainLabels, testLabels,k):
     return accurate/total
 
 
+def trainKNNJaccard(traindf,ngrams):
+    sent_dict = {}
+    labels = {}
+    ind = 0
+    for index, row in traindf.iterrows():
+        x = extract_word_custom(row["Tweet"],ngrams)
+        y = row["Party"]
+        if len(x) != 0:
+            sent_dict[ind] = x
+            labels[ind] = y
+            ind += 1
+    return sent_dict, labels
 
-
-
+def testKNNJaccard(sent_dict,testdf,trainLabels,k,ngrams):
+    accurate = 0
+    total = len(testdf.index)
+    for index, testS in testdf.iterrows():
+        x = extract_word_custom(testS["Tweet"],ngrams)
+        answer = testS["Party"]
+        eucDist = {}
+        for el in sent_dict:
+            intersection = len(list(set(x).intersection(sent_dict[el])))
+            union = (len(x) + len(sent_dict[el])) - intersection
+            score = (float(intersection) / union)
+            eucDist[score] = trainLabels[el]
+        newDict = dict(sorted(eucDist.items(), reverse=True))
+        count = 0
+        potLabels = []
+        for el in newDict:
+            potLabels.append(newDict[el])
+            count += 1
+            if count == k:
+                break
+        guess = max(set(potLabels), key=potLabels.count)
+        if guess == answer:
+            accurate += 1
+    return accurate / total
 
 
 def main(argv):
+
+
+
     trainSet = argv[1]
-    # testSet = argv[2]
-    # print(trainSet)
-    # print(testSet)
-    df = pd.read_csv(trainSet,delimiter=",")
-    df = df.sample(frac = 0.03, random_state=200)
-    # print(len(df))
-    traindf = df.sample(frac = 0.85, random_state=200)
-    # print(len(traindf))
+    metric = argv[2]
+    k = int(argv[3])
+    n_grams = int(argv[4])
+    df = pd.read_csv(trainSet, delimiter=",")
+    df = df.sample(frac=0.10, random_state=200)
+    traindf = df.sample(frac=0.85, random_state=200)
     testdf = df.drop(traindf.index)
-    # print(len(testdf))
-    feature_matrix, trainLabels, word_dict = trainkNN(traindf)
-    test_feature_matrix, testLabels = trainTestData(testdf,word_dict)
-    # print(test_feature_matrix.sum(axis = 1))
-    print(testkNN(feature_matrix,test_feature_matrix, trainLabels, testLabels,3))
+
+    if metric == "euclidean":
+
+        feature_matrix, trainLabels, word_dict = trainkNN(traindf,n_grams)
+        test_feature_matrix, testLabels = trainTestData(testdf,word_dict,n_grams)
+        print(testkNN(feature_matrix,test_feature_matrix, trainLabels, testLabels,k))
+    elif metric == "jaccard":
+        sent_dict, labels = trainKNNJaccard(traindf,n_grams)
+        print(testKNNJaccard(sent_dict,testdf,labels,k,n_grams))
 
 if __name__ == '__main__':
     main(sys.argv)
