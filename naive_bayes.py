@@ -8,7 +8,7 @@ import math
 from process_csv import *
 
 def main():
-    filename = 'ExtractedTweets.csv'
+    filename = 'ScrapedCurrentTweets.csv'
     output_file = open("naivebayes.output", 'w')
     # Dictionary containing all tweets from spreadsheet
     # Structure:
