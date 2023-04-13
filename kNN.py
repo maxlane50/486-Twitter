@@ -149,6 +149,7 @@ def removeStopWords(tokenList):
         num += 1
     return tokenList
 
+#This function takes in a string and converts it into an array of words
 def extract_word_custom(input_string,n_gram = 1):
 
     # TODO: Implement this function
@@ -211,6 +212,7 @@ def trainkNN(df,ngrams):
             ind +=1
     return feature_matrix, labels, word_dict
 
+#breaks test data down into its own feature matrix
 def trainTestData(df,word_dict,ngrams):
     labels = {}
     feature_matrix = np.zeros((len(df),len(word_dict)))
@@ -225,7 +227,7 @@ def trainTestData(df,word_dict,ngrams):
         ind += 1
     return feature_matrix, labels
 
-
+#compares test data to train to make predictions using euclid distance similarity
 def testkNN(feature_matrix, test_feature_matrix, trainLabels, testLabels,k):
     total = len(test_feature_matrix)
     accurate = 0
@@ -247,7 +249,7 @@ def testkNN(feature_matrix, test_feature_matrix, trainLabels, testLabels,k):
             accurate += 1
     return accurate/total
 
-
+#produces array of words for each training tweet
 def trainKNNJaccard(traindf,ngrams):
     sent_dict = {}
     labels = {}
@@ -261,6 +263,9 @@ def trainKNNJaccard(traindf,ngrams):
             ind += 1
     return sent_dict, labels
 
+#creates array of words for each test tweet, calculates intesection and union od each train and test
+#tweet to calculate jaccard similarity
+#output accuracy
 def testKNNJaccard(sent_dict,testdf,trainLabels,k,ngrams):
     accurate = 0
     total = len(testdf.index)
