@@ -248,27 +248,64 @@ def testkNN(feature_matrix, test_feature_matrix, trainLabels, testLabels,k):
     return accurate/total
 
 
+def trainKNNJaccard(traindf):
+    sent_dict = {}
+    labels = {}
+    ind = 0
+    for index, row in traindf.iterrows():
+        x = extract_word_custom(row["Tweet"],3)
+        y = row["Party"]
+        if len(x) != 0:
+            sent_dict[ind] = x
+            labels[ind] = y
+            ind += 1
+    return sent_dict, labels
 
-
-
+def testKNNJaccard(sent_dict,testdf,trainLabels,k):
+    accurate = 0
+    total = len(testdf.index)
+    for index, testS in testdf.iterrows():
+        x = extract_word_custom(testS["Tweet"],3)
+        answer = testS["Party"]
+        eucDist = {}
+        for el in sent_dict:
+            intersection = len(list(set(x).intersection(sent_dict[el])))
+            union = (len(x) + len(sent_dict[el])) - intersection
+            score = (float(intersection) / union)
+            eucDist[score] = trainLabels[el]
+        newDict = dict(sorted(eucDist.items(), reverse=True))
+        count = 0
+        potLabels = []
+        for el in newDict:
+            potLabels.append(newDict[el])
+            count += 1
+            if count == k:
+                break
+        guess = max(set(potLabels), key=potLabels.count)
+        if guess == answer:
+            accurate += 1
+    return accurate / total
 
 
 def main(argv):
+
+
+
     trainSet = argv[1]
-    # testSet = argv[2]
-    # print(trainSet)
-    # print(testSet)
-    df = pd.read_csv(trainSet,delimiter=",")
-    df = df.sample(frac = 0.10, random_state=200)
-    # print(len(df))
-    traindf = df.sample(frac = 0.85, random_state=200)
-    # print(len(traindf))
+    metric = argv[2]
+    df = pd.read_csv(trainSet, delimiter=",")
+    df = df.sample(frac=0.10, random_state=200)
+    traindf = df.sample(frac=0.85, random_state=200)
     testdf = df.drop(traindf.index)
-    # print(len(testdf))
-    feature_matrix, trainLabels, word_dict = trainkNN(traindf)
-    test_feature_matrix, testLabels = trainTestData(testdf,word_dict)
-    # print(test_feature_matrix.sum(axis = 1))
-    print(testkNN(feature_matrix,test_feature_matrix, trainLabels, testLabels,20))
+
+    if metric == "euclidean":
+
+        feature_matrix, trainLabels, word_dict = trainkNN(traindf)
+        test_feature_matrix, testLabels = trainTestData(testdf,word_dict)
+        print(testkNN(feature_matrix,test_feature_matrix, trainLabels, testLabels,5))
+    elif metric == "jaccard":
+        sent_dict, labels = trainKNNJaccard(traindf)
+        print(testKNNJaccard(sent_dict,testdf,labels,1))
 
 if __name__ == '__main__':
     main(sys.argv)
