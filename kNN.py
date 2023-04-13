@@ -195,13 +195,13 @@ def extract_dictionary_custom(df,n_gram = 1):
 
 #generate a feature matrix
 def trainkNN(df):
-    word_dict, num_of_tweets = extract_dictionary_custom(df,2)
+    word_dict, num_of_tweets = extract_dictionary_custom(df,1)
     labels = {}
     num_of_words = len(word_dict)
     feature_matrix = np.zeros((num_of_tweets,num_of_words))
     ind = 0
     for index, row in df.iterrows():
-        x = extract_word_custom(row["Tweet"],2)
+        x = extract_word_custom(row["Tweet"],1)
         y = row["Party"]
         if len(x) != 0:
             for word in x:
@@ -216,7 +216,7 @@ def trainTestData(df,word_dict):
     feature_matrix = np.zeros((len(df),len(word_dict)))
     ind = 0
     for index, row in df.iterrows():
-        x = extract_word_custom(row["Tweet"],2)
+        x = extract_word_custom(row["Tweet"],1)
         y = row["Party"]
         for word in x:
             if word in word_dict:
@@ -259,7 +259,7 @@ def main(argv):
     # print(trainSet)
     # print(testSet)
     df = pd.read_csv(trainSet,delimiter=",")
-    df = df.sample(frac = 0.03, random_state=200)
+    df = df.sample(frac = 0.10, random_state=200)
     # print(len(df))
     traindf = df.sample(frac = 0.85, random_state=200)
     # print(len(traindf))
@@ -268,7 +268,7 @@ def main(argv):
     feature_matrix, trainLabels, word_dict = trainkNN(traindf)
     test_feature_matrix, testLabels = trainTestData(testdf,word_dict)
     # print(test_feature_matrix.sum(axis = 1))
-    print(testkNN(feature_matrix,test_feature_matrix, trainLabels, testLabels,3))
+    print(testkNN(feature_matrix,test_feature_matrix, trainLabels, testLabels,20))
 
 if __name__ == '__main__':
     main(sys.argv)
